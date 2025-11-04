@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
         * { box-sizing: border-box; }
         body { font-family: system-ui, -apple-system, sans-serif; }
@@ -23,47 +24,64 @@
     <script>
         // Google Sheets CSV URLs
         const SHEETS_CONFIG = {
-            hmsWarehouse: 'YOUR_HMS_WAREHOUSE_CSV_URL',
-            telkomOffice: 'YOUR_TELKOM_OFFICE_CSV_URL'
+            hmsWarehouse: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQFW0PDOixi7Jlhcd629VlQARE3mrSJqRKa0OvjnxUp6vVU8HDrmggt7FjybTKidiFRYG5KBk_R27x1/pub?gid=1128681242&single=true&output=csv',
+            telkomOffice: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTETvKfVJotQtjK7lFp5j6cYzLxumpBqPsPcEj_nP7bLvkSjGpfIQXmAHL66Zb7YmXuxyIwSNcfw5jA/pub?gid=0&single=true&output=csv'
         };
 
-        // Data HMS Warehouses
-        let hmsWarehouses = [
-            { id: 1, zona: "NORTH SUMATRA ZONE", kota: "Medan 1", lat: 3.5930666653098062, lng: 98.63792100303282 },
-            { id: 2, zona: "NORTH SUMATRA ZONE", kota: "Medan 2", lat: 3.5373546229355055, lng: 98.82088702562696 },
-            { id: 3, zona: "NORTH SUMATRA ZONE", kota: "Banda Aceh", lat: 5.541530128067164, lng: 95.31082651905314 },
-            { id: 14, zona: "NORTH SUMATRA ZONE", kota: "Padang", lat: -0.8627102743494186, lng: 100.3763405082778 },
-            { id: 15, zona: "NORTH SUMATRA ZONE", kota: "Pekanbaru", lat: 0.48085738331435635, lng: 101.44134694452403 },
-            { id: 17, zona: "NORTH SUMATRA ZONE", kota: "Batam", lat: 1.1088463622616913, lng: 104.06757239477875 },
-            { id: 20, zona: "SOUTH SUMATRA ZONE", kota: "Palembang", lat: -2.9114864022312092, lng: 104.7146463352749 },
-            { id: 22, zona: "SOUTH SUMATRA ZONE", kota: "Jambi", lat: -1.64338070757022, lng: 103.63053421199074 },
-            { id: 29, zona: "SOUTH SUMATRA ZONE", kota: "Bengkulu", lat: -3.7680956, lng: 102.2705372 },
-            { id: 35, zona: "JAKARTA ZONE", kota: "Jakarta Barat", lat: -6.19229453919793, lng: 106.76848176600298 },
-            { id: 36, zona: "JAKARTA ZONE", kota: "Jakarta Utara", lat: -6.12941730885776, lng: 106.91052718268799 },
-            { id: 41, zona: "JAKARTA ZONE", kota: "Bogor", lat: -6.5118715980113855, lng: 106.8532864291344 },
-            { id: 50, zona: "WEST JAVA ZONE", kota: "Bandung", lat: -6.933844289393681, lng: 107.68946567157579 },
-            { id: 59, zona: "CENTRAL JAVA ZONE", kota: "Yogyakarta", lat: -7.713535631526459, lng: 110.36752285098801 },
-            { id: 66, zona: "CENTRAL JAVA ZONE", kota: "Semarang", lat: -7.00453, lng: 110.4545628 },
-            { id: 71, zona: "EAST JAVA ZONE", kota: "Sidoarjo", lat: -7.349053624625632, lng: 112.75766733833791 },
-            { id: 79, zona: "EAST JAVA ZONE", kota: "Denpasar", lat: -8.7179804, lng: 115.2017273 },
-            { id: 90, zona: "EAST INDONESIA ZONE", kota: "Manado", lat: 1.4830196, lng: 124.8557027 },
-            { id: 94, zona: "EAST INDONESIA ZONE", kota: "Banjarmasin", lat: -3.378102351246243, lng: 114.64788205581854 },
-            { id: 103, zona: "EAST INDONESIA ZONE", kota: "Jayapura", lat: -2.5696665, lng: 140.7052456 }
-        ];
+        // Data HMS Warehouses (akan diisi dari Google Sheets)
+        let hmsWarehouses = [];
 
-        // Data Telkom Offices
-        let telkomOffices = [
-            { id: 1, kota: "Banda Aceh Kota", nama: "Plasa Telkom Banda Aceh", lat: 5.556852, lng: 95.32355 },
-            { id: 5, kota: "Kabanjahe", nama: "Plasa Telkom Kabanjahe", lat: 3.102468, lng: 98.49695 },
-            { id: 11, kota: "Jambi", nama: "Plasa Telkom Jambi", lat: -1.6100780928859, lng: 103.59635848209 },
-            { id: 17, kota: "Serang", nama: "Plasa Telkom Serang", lat: -6.112922, lng: 106.141644 },
-            { id: 18, kota: "Bogor", nama: "Plasa Telkom Pajajaran", lat: -6.187019, lng: 107.048929 },
-            { id: 31, kota: "Semarang", nama: "Plasa Telkom Digital Pahlawan", lat: -6.99428, lng: 110.4217 },
-            { id: 35, kota: "Surabaya", nama: "Plasa Telkom Mergoyoso", lat: -7.26251, lng: 112.7399 },
-            { id: 49, kota: "Makassar", nama: "Plasa Telkom Pettarani", lat: -2.995575, lng: 120.195864 },
-            { id: 54, kota: "Ambon", nama: "Plasa Telkom Ambon", lat: -3.702843, lng: 128.173715 },
-            { id: 58, kota: "Jayapura", nama: "Plasa Telkom Sentani", lat: -2.566546, lng: 140.512192 }
-        ];
+        // Data Telkom Offices (akan diisi dari Google Sheets)
+        let telkomOffices = [];
+
+        // Function to load data from Google Sheets
+        async function loadDataFromSheets() {
+            try {
+                // Load HMS Warehouse data
+                const hmsResponse = await fetch(SHEETS_CONFIG.hmsWarehouse);
+                const hmsText = await hmsResponse.text();
+                const hmsParsed = Papa.parse(hmsText, { 
+                    header: true, 
+                    skipEmptyLines: true,
+                    dynamicTyping: true
+                });
+                
+                // Load Telkom Office data
+                const telkomResponse = await fetch(SHEETS_CONFIG.telkomOffice);
+                const telkomText = await telkomResponse.text();
+                const telkomParsed = Papa.parse(telkomText, { 
+                    header: true, 
+                    skipEmptyLines: true,
+                    dynamicTyping: true
+                });
+
+                // Process HMS Warehouse data
+                hmsWarehouses = hmsParsed.data.map((row, index) => ({
+                    id: row.id || index + 1,
+                    zona: (row.zona || row.ZONA || '').trim(),
+                    kota: (row.kota || row.KOTA || row.nama || row.NAMA || '').trim(),
+                    lat: parseFloat(row.lat || row.LAT || row.latitude || row.LATITUDE || 0),
+                    lng: parseFloat(row.lng || row.LNG || row.longitude || row.LONGITUDE || 0)
+                })).filter(item => item.lat !== 0 && item.lng !== 0 && item.kota);
+
+                // Process Telkom Office data
+                telkomOffices = telkomParsed.data.map((row, index) => ({
+                    id: row.id || index + 1,
+                    kota: (row.kota || row.KOTA || '').trim(),
+                    nama: (row.nama || row.NAMA || row.name || row.NAME || '').trim(),
+                    lat: parseFloat(row.lat || row.LAT || row.latitude || row.LATITUDE || 0),
+                    lng: parseFloat(row.lng || row.LNG || row.longitude || row.LONGITUDE || 0)
+                })).filter(item => item.lat !== 0 && item.lng !== 0 && item.nama);
+
+                console.log('HMS Warehouses loaded:', hmsWarehouses.length);
+                console.log('Telkom Offices loaded:', telkomOffices.length);
+
+                return hmsWarehouses.length > 0 && telkomOffices.length > 0;
+            } catch (error) {
+                console.error('Error loading data from Google Sheets:', error);
+                return false;
+            }
+        }
 
         // Calculate distance
         function calculateDistance(lat1, lon1, lat2, lon2) {
@@ -124,10 +142,8 @@
         // State management
         let selectedWarehouse = null;
         let filterZone = 'ALL';
-        let currentTab = 'map'; // 'map' or 'table'
+        let currentTab = 'map';
         let map = null;
-        let markers = { hms: null, telkom: null };
-        let routeLine = null;
 
         function getZones() {
             return ['ALL', ...new Set(hmsWarehouses.map(w => w.zona))];
@@ -135,20 +151,17 @@
 
         // Initialize or update map
         function initMap(warehouse, telkom) {
-            // Destroy existing map if any
             if (map) {
                 map.remove();
                 map = null;
             }
 
-            // Create new map
             setTimeout(() => {
                 map = L.map('map').setView([warehouse.lat, warehouse.lng], 10);
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     attribution: '© OpenStreetMap contributors'
                 }).addTo(map);
 
-                // Custom icons
                 const hmsIcon = L.divIcon({
                     className: 'custom-icon',
                     html: '<div style="background-color: #dc2626; color: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3);"><i class="fas fa-warehouse"></i></div>',
@@ -163,7 +176,6 @@
                     iconAnchor: [18, 18]
                 });
 
-                // Add markers
                 L.marker([warehouse.lat, warehouse.lng], { icon: hmsIcon })
                     .bindPopup(`<strong>HMS Warehouse</strong><br>${warehouse.kota}<br><small>${warehouse.zona}</small>`)
                     .addTo(map);
@@ -172,7 +184,6 @@
                     .bindPopup(`<strong>Telkom Office</strong><br>${telkom.nama}<br><small>${telkom.kota}</small>`)
                     .addTo(map);
 
-                // Add route line
                 const lineColor = telkom.distance <= 20 ? '#10b981' : '#f59e0b';
                 L.polyline([[warehouse.lat, warehouse.lng], [telkom.lat, telkom.lng]], {
                     color: lineColor,
@@ -181,7 +192,6 @@
                     dashArray: '10, 10'
                 }).addTo(map);
 
-                // Fit bounds
                 const bounds = L.latLngBounds([[warehouse.lat, warehouse.lng], [telkom.lat, telkom.lng]]);
                 map.fitBounds(bounds, { padding: [50, 50] });
             }, 100);
@@ -312,9 +322,8 @@
                                         Detail Pemetaan
                                     </h2>
                                     
-                                    <!-- Info Cards - Horizontal -->
+                                    <!-- Info Cards -->
                                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
-                                        <!-- HMS Info -->
                                         <div class="bg-gradient-to-br from-red-50 to-red-100 p-4 rounded-lg border border-red-200">
                                             <div class="text-center">
                                                 <i class="fas fa-warehouse text-3xl text-red-600 mb-2"></i>
@@ -327,7 +336,6 @@
                                             </div>
                                         </div>
 
-                                        <!-- Distance Badge -->
                                         <div class="flex items-center justify-center p-4 rounded-lg ${nearestTelkom.distance <= 20 ? 'bg-gradient-to-br from-green-50 to-green-100 border border-green-300' : 'bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-300'}">
                                             <div class="text-center">
                                                 <i class="fas fa-ruler text-2xl ${nearestTelkom.distance <= 20 ? 'text-green-700' : 'text-orange-700'} mb-2"></i>
@@ -340,7 +348,6 @@
                                             </div>
                                         </div>
 
-                                        <!-- Telkom Info -->
                                         <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
                                             <div class="text-center">
                                                 <i class="fas fa-building text-3xl text-blue-600 mb-2"></i>
@@ -354,10 +361,8 @@
                                         </div>
                                     </div>
 
-                                    <!-- Map -->
                                     <div id="map" class="mb-4"></div>
 
-                                    <!-- Google Maps Link -->
                                     <a href="https://www.google.com/maps/dir/${selectedWarehouse.lat},${selectedWarehouse.lng}/${nearestTelkom.lat},${nearestTelkom.lng}" target="_blank" class="flex items-center justify-center gap-2 w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition font-semibold shadow-md">
                                         <i class="fas fa-directions"></i>
                                         Lihat Rute di Google Maps
@@ -509,3 +514,4 @@
     </script>
 </body>
 </html>
+
