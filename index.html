@@ -23,18 +23,46 @@
     <script>
         // Google Sheets CSV URLs
         const SHEETS_CONFIG = {
-            hmsWarehouse: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQFW0PDOixi7Jlhcd629VlQARE3mrSJqRKa0OvjnxUp6vVU8HDrmggt7FjybTKidiFRYG5KBk_R27x1/pub?gid=1128681242&single=true&output=csv',
-            telkomOffice: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTETvKfVJotQtjK7lFp5j6cYzLxumpBqPsPcEj_nP7bLvkSjGpfIQXmAHL66Zb7YmXuxyIwSNcfw5jA/pub?gid=0&single=true&output=csv'
+            hmsWarehouse: 'YOUR_HMS_WAREHOUSE_CSV_URL',
+            telkomOffice: 'YOUR_TELKOM_OFFICE_CSV_URL'
         };
 
         // Data HMS Warehouses
         let hmsWarehouses = [
-            { id: 1, zona: "NORTH SUMATRA ZONE", kota: "Medan 1", lat: 3.5930666653098062, lng: 98.63792100303282 }
+            { id: 1, zona: "NORTH SUMATRA ZONE", kota: "Medan 1", lat: 3.5930666653098062, lng: 98.63792100303282 },
+            { id: 2, zona: "NORTH SUMATRA ZONE", kota: "Medan 2", lat: 3.5373546229355055, lng: 98.82088702562696 },
+            { id: 3, zona: "NORTH SUMATRA ZONE", kota: "Banda Aceh", lat: 5.541530128067164, lng: 95.31082651905314 },
+            { id: 14, zona: "NORTH SUMATRA ZONE", kota: "Padang", lat: -0.8627102743494186, lng: 100.3763405082778 },
+            { id: 15, zona: "NORTH SUMATRA ZONE", kota: "Pekanbaru", lat: 0.48085738331435635, lng: 101.44134694452403 },
+            { id: 17, zona: "NORTH SUMATRA ZONE", kota: "Batam", lat: 1.1088463622616913, lng: 104.06757239477875 },
+            { id: 20, zona: "SOUTH SUMATRA ZONE", kota: "Palembang", lat: -2.9114864022312092, lng: 104.7146463352749 },
+            { id: 22, zona: "SOUTH SUMATRA ZONE", kota: "Jambi", lat: -1.64338070757022, lng: 103.63053421199074 },
+            { id: 29, zona: "SOUTH SUMATRA ZONE", kota: "Bengkulu", lat: -3.7680956, lng: 102.2705372 },
+            { id: 35, zona: "JAKARTA ZONE", kota: "Jakarta Barat", lat: -6.19229453919793, lng: 106.76848176600298 },
+            { id: 36, zona: "JAKARTA ZONE", kota: "Jakarta Utara", lat: -6.12941730885776, lng: 106.91052718268799 },
+            { id: 41, zona: "JAKARTA ZONE", kota: "Bogor", lat: -6.5118715980113855, lng: 106.8532864291344 },
+            { id: 50, zona: "WEST JAVA ZONE", kota: "Bandung", lat: -6.933844289393681, lng: 107.68946567157579 },
+            { id: 59, zona: "CENTRAL JAVA ZONE", kota: "Yogyakarta", lat: -7.713535631526459, lng: 110.36752285098801 },
+            { id: 66, zona: "CENTRAL JAVA ZONE", kota: "Semarang", lat: -7.00453, lng: 110.4545628 },
+            { id: 71, zona: "EAST JAVA ZONE", kota: "Sidoarjo", lat: -7.349053624625632, lng: 112.75766733833791 },
+            { id: 79, zona: "EAST JAVA ZONE", kota: "Denpasar", lat: -8.7179804, lng: 115.2017273 },
+            { id: 90, zona: "EAST INDONESIA ZONE", kota: "Manado", lat: 1.4830196, lng: 124.8557027 },
+            { id: 94, zona: "EAST INDONESIA ZONE", kota: "Banjarmasin", lat: -3.378102351246243, lng: 114.64788205581854 },
+            { id: 103, zona: "EAST INDONESIA ZONE", kota: "Jayapura", lat: -2.5696665, lng: 140.7052456 }
         ];
 
         // Data Telkom Offices
         let telkomOffices = [
-            { id: 1, kota: "Banda Aceh Kota", nama: "Plasa Telkom Banda Aceh", lat: 5.556852, lng: 95.32355 }
+            { id: 1, kota: "Banda Aceh Kota", nama: "Plasa Telkom Banda Aceh", lat: 5.556852, lng: 95.32355 },
+            { id: 5, kota: "Kabanjahe", nama: "Plasa Telkom Kabanjahe", lat: 3.102468, lng: 98.49695 },
+            { id: 11, kota: "Jambi", nama: "Plasa Telkom Jambi", lat: -1.6100780928859, lng: 103.59635848209 },
+            { id: 17, kota: "Serang", nama: "Plasa Telkom Serang", lat: -6.112922, lng: 106.141644 },
+            { id: 18, kota: "Bogor", nama: "Plasa Telkom Pajajaran", lat: -6.187019, lng: 107.048929 },
+            { id: 31, kota: "Semarang", nama: "Plasa Telkom Digital Pahlawan", lat: -6.99428, lng: 110.4217 },
+            { id: 35, kota: "Surabaya", nama: "Plasa Telkom Mergoyoso", lat: -7.26251, lng: 112.7399 },
+            { id: 49, kota: "Makassar", nama: "Plasa Telkom Pettarani", lat: -2.995575, lng: 120.195864 },
+            { id: 54, kota: "Ambon", nama: "Plasa Telkom Ambon", lat: -3.702843, lng: 128.173715 },
+            { id: 58, kota: "Jayapura", nama: "Plasa Telkom Sentani", lat: -2.566546, lng: 140.512192 }
         ];
 
         // Calculate distance
@@ -443,9 +471,41 @@
 
         window.exportToCSV = exportToCSV;
 
-        // Initial render
-        render();
+        // Initial load and render
+        (async function init() {
+            // Show loading message
+            document.getElementById('app').innerHTML = `
+                <div class="max-w-7xl mx-auto">
+                    <div class="bg-white rounded-xl shadow-md p-12 text-center">
+                        <div class="animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-600 mx-auto mb-4"></div>
+                        <h3 class="text-xl font-semibold text-gray-700 mb-2">Memuat Data...</h3>
+                        <p class="text-gray-500">Mengambil data dari Google Sheets</p>
+                    </div>
+                </div>
+            `;
+            
+            // Load data from Google Sheets
+            const success = await loadDataFromSheets();
+            
+            if (success && hmsWarehouses.length > 0 && telkomOffices.length > 0) {
+                // Render the app
+                render();
+            } else {
+                document.getElementById('app').innerHTML = `
+                    <div class="max-w-7xl mx-auto">
+                        <div class="bg-white rounded-xl shadow-md p-12 text-center">
+                            <i class="fas fa-exclamation-triangle text-6xl text-red-500 mb-4"></i>
+                            <h3 class="text-xl font-semibold text-gray-700 mb-2">Gagal Memuat Data</h3>
+                            <p class="text-gray-500 mb-4">Tidak dapat memuat data dari Google Sheets.</p>
+                            <button onclick="location.reload()" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition">
+                                <i class="fas fa-redo mr-2"></i>
+                                Coba Lagi
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        })();
     </script>
 </body>
 </html>
-
